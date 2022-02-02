@@ -3,7 +3,7 @@ import * as Wrapper from "./wrappers.js"
 // Convenience variable to insert the module name where required
 export const ModuleName = "hooking-tokens";
 
-/** Hooks once on 'init' to OVERRIDE the foundry.js functions to introduce the new hooks */
+/** Hooks once on 'init' to conditionally OVERRIDE the foundry.js functions to introduce the new hooks */
 Hooks.once('init', () => {
     Wrapper.coreAnimateFrame();
     Wrapper.coreTerminateAnimation();
@@ -12,8 +12,14 @@ Hooks.once('init', () => {
     Wrapper.coreRulerMoveToken();
 })
 
-/** Testing the new token movement terminated hook! 
-Hooks.on('tokenAnimationTerminated', (data) => {
+
+
+/** The Hooks below were developed as proof of concepts, to be used as macros.
+
+// This hook will spit out animation data at time of termination to the console.
+// It will also set the token's position at the spot where the animation was terminated.
+// Core sets the token position before animation starts, so terminating an animation in core sends the token to the end point.
+Hooks.once('tokenAnimationTerminated', (data) => {
     console.log("Token animation terminated early: ", data);
     ui.notifications.info("Notification triggered off the new 'tokenAnimationTerminated' hook.  See console for animation data!");
     const token = data[0].parent;
@@ -27,10 +33,10 @@ Hooks.on('tokenAnimationTerminated', (data) => {
 
     token.document.update({_id: token.id, x: wasX, y: wasY}, {animate: false});
 })
-*/
 
-/**
-Hooks.on('preTokenAnimate', (token, data) => {
+// This was a test to inject a function into the tokenAnimate callback that is added to the canvas ticker.
+// It will just generate a console log message on every tick.
+Hooks.once('preTokenAnimate', (token, data) => {
 
     const myNewVar = "YES!";
     data.ontick = (dt, anim) => {
@@ -39,40 +45,38 @@ Hooks.on('preTokenAnimate', (token, data) => {
     }
     console.log("preTokenAnimate hook has fired!");
 })
-*/
 
-/** This hook will cause a token movement to be cancelled and the token will emote text in a chat bubble.
+// This hook will cause token movement to be cancelled before it can begin.
+// The token will emote text in a chat bubble.
 Hooks.once('preTokenMove', (token, updates) => {
     // This hook will make the token say, "Does it look like I can fly!?" and cancel the movement.
     const bubble = new ChatLog;
     bubble.processMessage("Does it look like I can fly!?");
     return false
 })
-*/
 
-/**
+// This hook will cause token movement to be cancelled before it beings.  This applies to movements entered via waypoints (hold ctrl and click path)
+// The token will emote text in a chat bubble.
 Hooks.once('preTokenChainMove', (token) => {
     const bubble = new ChatLog;
     bubble.processMessage("Whoa!  Do you think I can remember all those waypoints!?");
     return false
 })
-*/
 
-/**
+// This hook will increase the movement speed by 3.  It does this by dividing the duration by 3.
 Hooks.once('preTokenAnimate', (token, data) => {
     // This hook will make the token faster than normal.
     data.duration /= 3; 
 })
-*/
 
-/**
+// This hook will emote text in a chat bubble, when an animation is complete.
 Hooks.once('tokenAnimationComplete', (token) => {
     const bubble = new ChatLog;
     bubble.processMessage("If you didn't drag me down into these places, I wouldn't have to strain myself running in full armor to get past these rediculous obstacles you can't seem to avoid...")
 })
-*/
 
-/**
+// This hook will change the destination of the token movement.
+// In this particular example, the token will only move half the distance.
 Hooks.once('preTokenMove', (token, updates) => {
 
     const midpoint = {
@@ -88,9 +92,9 @@ Hooks.once('preTokenMove', (token, updates) => {
         bubble.processMessage("Sh!t, I slipped...");
     })
 })
-*/
 
-/**
+// This hook alters the waypoints of a token movement.  The intent was to have the token move between waypoints that I would enter in a zig-zag pattern.
+// The logic here is very wrong.  But it still demonstrates that the waypoints can be changed via the hook.
 Hooks.once('preTokenChainMove', (token, Ruler) => {
 
     for (let i=0; i < Ruler.waypoints.length - 1; i++) {
@@ -98,9 +102,9 @@ Hooks.once('preTokenChainMove', (token, Ruler) => {
         Ruler.waypoints[i].y = (Ruler.waypoints[i].y + Ruler.waypoints[i+1].y) / 2;
     }
 })
-*/
 
-/**
+// This hook injects more code into the animate callback (ontick).
+// The injected code adds a PIXI Graphics circle to the canvas every 100 or so pixels.
 Hooks.once('preTokenAnimate', (token, data) => {
     const tokenCenter = token.w/2;
     let lastPos = {
