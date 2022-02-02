@@ -2,16 +2,16 @@ import { ModuleName } from "./initialize.js"
 
 export function coreAnimateFrame() {
     libWrapper.register(ModuleName, 'CanvasAnimation._animateFrame', async function animateFrameHook(wrapper, ...args) {
-        const [deltaTime, resolve, reject, attributes, duration, ontick] = args;
-        const token = attributes[0]?.parent;
-        const animationName = token.movementAnimationName;
+        const [deltaTime, resolve, reject, attributes, duration, ontick] = args;        // Added by Hooking Tokens.
+        const token = attributes[0]?.parent;                                            // Added by Hooking Tokens.
+        const animationName = token.movementAnimationName;                              // Added by Hooking Tokens.
 
-        if (!(token instanceof Token)) return wrapper(...args);
+        if (!(token instanceof Token)) return wrapper(...args);                         // Added by Hooking Tokens.
 
         let complete = attributes.length === 0;
         let dt = (duration * PIXI.settings.TARGET_FPMS) / deltaTime;
         
-        if (CanvasAnimation.animations[animationName]?.terminate) {
+        if (CanvasAnimation.animations[animationName]?.terminate) {                     // Added by Hooking Tokens.
             Hooks.callAll('tokenAnimationTerminated', attributes);
             return resolve(true);
         }
@@ -39,7 +39,7 @@ export function coreAnimateFrame() {
 
         // Resolve the original promise once the animation is complete
         if (complete) {
-            Hooks.callAll('tokenAnimationComplete', attributes[0].parent);
+            Hooks.callAll('tokenAnimationComplete', attributes[0].parent);              // Added by Hooking Tokens.
             resolve(true);
         }   
     }, 'MIXED');
@@ -47,12 +47,12 @@ export function coreAnimateFrame() {
 
 export function coreTerminateAnimation() {
     libWrapper.register(ModuleName, 'CanvasAnimation.terminateAnimation', function terminateAnimationHook(wrapper, ...args) {
-        const [name] = args;
+        const [name] = args;                                                            // Added by Hooking Tokens.
 
-        if (!name.includes("Token")) return wrapper(...args)
+        if (!name.includes("Token")) return wrapper(...args)                            // Added by Hooking Tokens.
 
         let animation = this.animations[name];
-        if (animation) animation.terminate = true;
+        if (animation) animation.terminate = true;                                      // Added by Hooking Tokens.
     }, 'MIXED')
 }
 
@@ -93,11 +93,11 @@ export function coreTokenMovement() {
             return updates;
         }, []);
 
-        const allowed = Hooks.call('preTokenMove', this, updates);
-        if ( allowed ) {
+        const allowed = Hooks.call('preTokenMove', this, updates);                                      // Added by Hooking Tokens.
+        if ( allowed ) {                                                                                // Added by Hooking Tokens.
             // Submit the data update
             return canvas.scene.updateEmbeddedDocuments("Token", updates);
-        } else console.log("Token movement prevented by 'preTokenMove' hook.");
+        } else console.log("Token movement prevented by 'preTokenMove' hook.");                         // Added by Hooking Tokens.
     }, 'OVERRIDE');
 }
 
@@ -113,8 +113,8 @@ export function coreRulerMoveToken() {
         if ( !token ) return false;
 
         // Allow a preTokenMove Hook to abort or alter the movement
-        const allowed = Hooks.call('preTokenChainMove', token, this);
-        if ( !allowed ) {
+        const allowed = Hooks.call('preTokenChainMove', token, this);                           // Added by Hooking Tokens.
+        if ( !allowed ) {                                                                       // Added by Hooking Tokens.
             console.log("Token movement prevented by 'preTokenChainMove' hook.");
             this._endMeasurement();
             return false;
@@ -170,7 +170,7 @@ export function coreRulerMoveToken() {
 export function coreTokenAnimateMovement() {
     libWrapper.register(ModuleName, 'Token.prototype.animateMovement', async function preAnimateHook(...args) {
         
-        const [ray] = args;
+        const [ray] = args;                                             // Added by Hooking Tokens.  (Can probably just change ...args to ray in function?)
         // Move distance is 10 spaces per second
         const s = canvas.dimensions.size;
         this._movement = ray;
@@ -179,7 +179,7 @@ export function coreTokenAnimateMovement() {
 
         // Define attributes
         // Determine what type of updates should be animated
-        const data = {
+        const data = {                                                  // Added by Hooking Tokens.  Organizing the content into data object is added.  The content is core.
             duration: (ray.distance * 1000) / speed,
             attributes: [
                 { parent: this, attribute: 'x', to: ray.B.x },
@@ -193,16 +193,16 @@ export function coreTokenAnimateMovement() {
                 },
             ontick: null
         }
-        data.ontick = (dt, anim) => this._onMovementFrame(dt, anim, data.config)
+        data.ontick = (dt, anim) => this._onMovementFrame(dt, anim, data.config)        // Added by Hooking Tokens. Added outside data because it references data.config.  Necessary?
 
-        Hooks.call('preTokenAnimate', this, data);
+        Hooks.call('preTokenAnimate', this, data);                                      // Added by Hooking Tokens.
 
         // Dispatch the animation function
         await CanvasAnimation.animateLinear(data.attributes, 
             {   name: this.movementAnimationName,
                 context: this,
-                duration: data.duration,
-                ontick: data.ontick
+                duration: data.duration,                                                // path to duration changed.  duration itself not changed.
+                ontick: data.ontick                                                     // path to ontick changed.  ontick itself not changed.
             });
 
 
