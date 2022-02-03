@@ -56,51 +56,6 @@ export function coreTerminateAnimation() {
     }, 'MIXED')
 }
 
-export function coreTokenMovement() {
-    libWrapper.register(ModuleName, 'Token.prototype._onDragLeftDrop', function preMoveHook(event) {
-        const clones = event.data.clones || [];
-        const {originalEvent, destination} = event.data;
-
-        // Ensure the cursor destination is within bounds
-        if ( !canvas.dimensions.rect.contains(destination.x, destination.y) ) return false;
-
-        // Compute the final dropped positions
-        const updates = clones.reduce((updates, c) => {
-
-            // Get the snapped top-left coordinate
-            let dest = {x: c.data.x, y: c.data.y};
-            if ( !originalEvent.shiftKey && (canvas.grid.type !== CONST.GRID_TYPES.GRIDLESS) ) {
-                const isTiny = (c.data.width < 1) && (c.data.height < 1);
-                dest = canvas.grid.getSnappedPosition(dest.x, dest.y, isTiny ? 2 : 1);
-            }
-
-            // Test collision for each moved token vs the central point of it's destination space
-            const target = c.getCenter(dest.x, dest.y);
-            if ( !game.user.isGM ) {
-                c._velocity = c._original._velocity;
-                let collides = c.checkCollision(target);
-                if ( collides ) {
-                ui.notifications.error("ERROR.TokenCollide", {localize: true});
-                return updates
-                }
-            }
-
-            // Otherwise ensure the final token center is in-bounds
-            else if ( !canvas.dimensions.rect.contains(target.x, target.y) ) return updates;
-
-            // Perform updates where no collision occurs
-            updates.push({_id: c._original.id, x: dest.x, y: dest.y});
-            return updates;
-        }, []);
-
-        const allowed = Hooks.call('preTokenMove', this, updates);                                      // Added by Hooking Tokens.
-        if ( allowed ) {                                                                                // Added by Hooking Tokens.
-            // Submit the data update
-            return canvas.scene.updateEmbeddedDocuments("Token", updates);
-        } else console.log("Token movement prevented by 'preTokenMove' hook.");                         // Added by Hooking Tokens.
-    }, 'OVERRIDE');
-}
-
 export function coreRulerMoveToken() {
     libWrapper.register(ModuleName, 'Ruler.prototype.moveToken', async function preRulerMoveHook() {
         let wasPaused = game.paused;

@@ -8,7 +8,6 @@ Hooks.once('init', () => {
     Wrapper.coreAnimateFrame();
     Wrapper.coreTerminateAnimation();
     Wrapper.coreTokenAnimateMovement();
-    Wrapper.coreTokenMovement();
     Wrapper.coreRulerMoveToken();
 })
 
@@ -46,15 +45,6 @@ Hooks.once('preTokenAnimate', (token, data) => {
     console.log("preTokenAnimate hook has fired!");
 })
 
-// This hook will cause token movement to be cancelled before it can begin.
-// The token will emote text in a chat bubble.
-Hooks.once('preTokenMove', (token, updates) => {
-    // This hook will make the token say, "Does it look like I can fly!?" and cancel the movement.
-    const bubble = new ChatLog;
-    bubble.processMessage("Does it look like I can fly!?");
-    return false
-})
-
 // This hook will cause token movement to be cancelled before it beings.  This applies to movements entered via waypoints (hold ctrl and click path)
 // The token will emote text in a chat bubble.
 Hooks.once('preTokenChainMove', (token) => {
@@ -73,24 +63,6 @@ Hooks.once('preTokenAnimate', (token, data) => {
 Hooks.once('tokenAnimationComplete', (token) => {
     const bubble = new ChatLog;
     bubble.processMessage("If you didn't drag me down into these places, I wouldn't have to strain myself running in full armor to get past these rediculous obstacles you can't seem to avoid...")
-})
-
-// This hook will change the destination of the token movement.
-// In this particular example, the token will only move half the distance.
-Hooks.once('preTokenMove', (token, updates) => {
-
-    const midpoint = {
-        x: (token.data.x + updates[0].x) / 2,
-        y: (token.data.y + updates[0].y) / 2
-    }
-
-    updates[0].x = midpoint.x;
-    updates[0].y = midpoint.y;
-
-    Hooks.once('tokenAnimationComplete', (token) => {
-        const bubble = new ChatLog;
-        bubble.processMessage("Sh!t, I slipped...");
-    })
 })
 
 // This hook alters the waypoints of a token movement.  The intent was to have the token move between waypoints that I would enter in a zig-zag pattern.
