@@ -6,8 +6,9 @@ export const ModuleName = "hooking-tokens";
 /** Hooks once on 'init' to conditionally OVERRIDE the foundry.js functions to introduce the new hooks */
 Hooks.once('init', () => {
     Wrapper.coreAnimateFrame();
+    Wrapper.coreAnimatePromise();
     Wrapper.coreTerminateAnimation();
-    Wrapper.coreTokenAnimateMovement();
+    Wrapper.coreTokenAnimateLinear();
     Wrapper.coreRulerMoveToken();
 })
 
@@ -69,7 +70,7 @@ Hooks.once('tokenAnimationComplete', (token) => {
 // The logic here is very wrong.  But it still demonstrates that the waypoints can be changed via the hook.
 Hooks.once('preTokenChainMove', (token, Ruler) => {
 
-    for (let i=0; i < Ruler.waypoints.length - 1; i++) {
+    for (let i=1; i < Ruler.waypoints.length - 1; i++) {
         Ruler.waypoints[i].x = (Ruler.waypoints[i].x + Ruler.waypoints[i+1].x) / 2;
         Ruler.waypoints[i].y = (Ruler.waypoints[i].y + Ruler.waypoints[i+1].y) / 2;
     }
