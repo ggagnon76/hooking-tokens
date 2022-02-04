@@ -26,51 +26,6 @@ export function coreAnimatePromise() {
     }, 'WRAPPER');
 }
 
-export function OLDcoreAnimateFrame() {
-    libWrapper.register(ModuleName, 'CanvasAnimation._animateFrame', async function animateFrameHook(wrapper, ...args) {
-        const [deltaTime, resolve, reject, attributes, duration, ontick] = args;        // Added by Hooking Tokens.
-        const token = attributes[0]?.parent;                                            // Added by Hooking Tokens.
-        const animationName = token.movementAnimationName;                              // Added by Hooking Tokens.
-
-        if (!(token instanceof Token)) return wrapper(...args);                         // Added by Hooking Tokens.
-
-        let complete = attributes.length === 0;
-        let dt = (duration * PIXI.settings.TARGET_FPMS) / deltaTime;
-        
-        if (CanvasAnimation.animations[animationName]?.terminate) {                     // Added by Hooking Tokens.
-            Hooks.callAll('tokenAnimationTerminated', attributes);
-            return resolve(true);
-        }
-
-        // Update each attribute
-        try {
-            for (let a of attributes) {
-                let da = a.delta / dt;
-                a.d = da;
-                if (a.remaining < (Math.abs(da) * 1.25)) {
-                a.parent[a.attribute] = a.to;
-                a.done = a.delta;
-                a.remaining = 0;
-                complete = true;
-                } else {
-                a.parent[a.attribute] += da;
-                a.done += da;
-                a.remaining = Math.abs(a.delta) - Math.abs(a.done);
-                }
-            }
-            if (ontick) ontick(dt, attributes);
-        } catch (err) {
-            reject(err);
-        }
-
-        // Resolve the original promise once the animation is complete
-        if (complete) {
-            Hooks.callAll('tokenAnimationComplete', attributes[0].parent);              // Added by Hooking Tokens.
-            resolve(true);
-        }   
-    }, 'MIXED');
-}
-
 export function coreTerminateAnimation() {
     libWrapper.register(ModuleName, 'CanvasAnimation.terminateAnimation', function terminateAnimationHook(wrapper, ...args) {
         const [name] = args;                                                            // Added by Hooking Tokens.
