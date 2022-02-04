@@ -3,7 +3,9 @@ import * as Wrapper from "./wrappers.js"
 // Convenience variable to insert the module name where required
 export const ModuleName = "hooking-tokens";
 
-/** Hooks once on 'init' to conditionally OVERRIDE the foundry.js functions to introduce the new hooks */
+/** Hooks once on 'init' to WRAP the foundry.js functions to introduce the new hooks
+*   Only CanvasAnimations.TerminateAnimation remains MIXED  (Overriden when context is a Token)
+*/
 Hooks.once('init', () => {
     Wrapper.coreAnimateFrame();
     Wrapper.coreAnimatePromise();
